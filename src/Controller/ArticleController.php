@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ArticleController extends AbstractController
@@ -29,7 +30,16 @@ class ArticleController extends AbstractController
         dump($slug, $this);
         return $this->render('article/show.html.twig', [
             'title' => ucwords(str_replace('-', ' ', $slug)),
-            'comments' => $comments
+            'comments' => $comments,
+            'slug' => $slug
         ]);
+    }
+
+    /**
+     * @Route("/news/{slug}/heart", name="article_toggle_heart", methods={"POST"})
+     */
+    public function toggleArticleHeart($slug)
+    {
+        return new JsonResponse(['hearts'=> rand(5,100)]);
     }
 }
