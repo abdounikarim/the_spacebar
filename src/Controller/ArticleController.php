@@ -47,6 +47,7 @@ cow est ribeye adipisicing. Pig hamburger pork belly enim. Do porchetta minim ca
 fugiat.
 EOF;
 
+        dump($markdown);die;
         $item = $cache->getItem('markdown_'.md5($articleContent));
         if(!$item->isHit())
         {
