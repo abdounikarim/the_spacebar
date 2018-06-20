@@ -11,6 +11,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class ArticleController extends AbstractController
 {
     /**
+     * @var bool
+     */
+    private $isDebug;
+
+    public function __construct(bool $isDebug)
+    {
+        $this->isDebug = $isDebug;
+    }
+
+    /**
      * @Route("/", name="app_homepage")
      */
     public function homepage()
