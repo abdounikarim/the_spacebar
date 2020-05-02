@@ -4,22 +4,19 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
-use App\Repository\CommentRepository;
-use App\Service\MarkdownHelper;
 use App\Service\SlackClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ArticleController extends AbstractController
 {
     /**
-     * @var bool
+     * Currently unused: just showing a controller with a constructor!
      */
     private $isDebug;
-
 
     public function __construct(bool $isDebug)
     {
@@ -34,7 +31,7 @@ class ArticleController extends AbstractController
         $articles = $repository->findAllPublishedOrderedByNewest();
 
         return $this->render('article/homepage.html.twig', [
-            'articles' => $articles
+            'articles' => $articles,
         ]);
     }
 
@@ -62,6 +59,6 @@ class ArticleController extends AbstractController
 
         $logger->info('Article is being hearted!');
 
-        return new JsonResponse(['hearts'=> $article->getHeartCount()]);
+        return new JsonResponse(['hearts' => $article->getHeartCount()]);
     }
 }
