@@ -4,10 +4,14 @@ namespace App\Controller;
 
 use App\Repository\CommentRepository;
 use Knp\Component\Pager\PaginatorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
+/**
+ * @IsGranted("ROLE_ADMIN")
+ */
 class CommentAdminController extends Controller
 {
     /**
@@ -16,6 +20,7 @@ class CommentAdminController extends Controller
     public function index(CommentRepository $repository, Request $request, PaginatorInterface $paginator)
     {
         $q = $request->query->get('q');
+
         $queryBuilder = $repository->getWithSearchQueryBuilder($q);
 
         $pagination = $paginator->paginate(
@@ -25,9 +30,7 @@ class CommentAdminController extends Controller
         );
 
         return $this->render('comment_admin/index.html.twig', [
-            'pagination' => $pagination
+            'pagination' => $pagination,
         ]);
     }
-
-
 }
