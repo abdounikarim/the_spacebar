@@ -62,7 +62,7 @@ class User implements UserInterface
     private $apiTokens;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="author")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="author", fetch="EXTRA_LAZY")
      */
     private $articles;
 
@@ -262,7 +262,7 @@ class User implements UserInterface
         return $this->agreedTermsAt;
     }
 
-    public function agreeTerms()
+    public function agreeToTerms()
     {
         $this->agreedTermsAt = new \DateTime();
     }
