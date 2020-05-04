@@ -32,7 +32,7 @@ class User implements UserInterface
     private $roles = [];
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("main")
      */
     private $firstName;
@@ -166,12 +166,13 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getAvatarUrl(string $size = null): string
+    public function getAvatarUrl(int $size = null): string
     {
         $url = 'https://robohash.org/'.$this->getEmail();
 
-        if ($size)
+        if ($size) {
             $url .= sprintf('?size=%dx%d', $size, $size);
+        }
 
         return $url;
     }
