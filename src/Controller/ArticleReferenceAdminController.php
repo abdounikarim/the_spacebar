@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ArticleReferenceAdminController extends BaseController
@@ -31,13 +30,16 @@ class ArticleReferenceAdminController extends BaseController
         $violations = $validator->validate(
             $uploadedFile,
             [
-                new NotBlank(),
+                new NotBlank([
+                    'message' => 'Please select a file to upload'
+                ]),
                 new File([
                     'maxSize' => '5M',
                     'mimeTypes' => [
                         'image/*',
                         'application/pdf',
                         'application/msword',
+                        'application/vnd.ms-excel',
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -48,12 +50,7 @@ class ArticleReferenceAdminController extends BaseController
         );
 
         if ($violations->count() > 0) {
-            /** @var ConstraintViolation $violation */
-            $violation = $violations[0];
-            $this->addFlash('error', $violation->getMessage());
-            return $this->redirectToRoute('admin_article_edit', [
-                'id' => $article->getId(),
-            ]);
+            return $this->json($violations, 400);
         }
 
         $filename = $uploaderHelper->uploadArticleReference($uploadedFile);
@@ -66,9 +63,14 @@ class ArticleReferenceAdminController extends BaseController
         $entityManager->persist($articleReference);
         $entityManager->flush();
 
-        return $this->redirectToRoute('admin_article_edit', [
-            'id' => $article->getId(),
-        ]);
+        return $this->json(
+            $articleReference,
+            201,
+            [],
+            [
+                'groups' => ['main']
+            ]
+        );
     }
 
     /**
@@ -78,9 +80,11 @@ class ArticleReferenceAdminController extends BaseController
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
+
         $response = new StreamedResponse(function() use ($reference, $uploaderHelper) {
             $outputStream = fopen('php://output', 'wb');
             $fileStream = $uploaderHelper->readStream($reference->getFilePath(), false);
+
             stream_copy_to_stream($fileStream, $outputStream);
         });
         $response->headers->set('Content-Type', $reference->getMimeType());
@@ -89,6 +93,7 @@ class ArticleReferenceAdminController extends BaseController
             $reference->getOriginalFilename()
         );
         $response->headers->set('Content-Disposition', $disposition);
+
         return $response;
     }
 }
