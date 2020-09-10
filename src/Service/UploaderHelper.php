@@ -6,8 +6,8 @@ use Gedmo\Sluggable\Util\Urlizer;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Asset\Context\RequestStackContext;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Asset\Context\RequestStackContext;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class UploaderHelper
@@ -16,15 +16,18 @@ class UploaderHelper
     const ARTICLE_REFERENCE = 'article_reference';
 
     private $filesystem;
+
     private $privateFilesystem;
 
     private $requestStackContext;
+
     private $logger;
+
     private $publicAssetBaseUrl;
 
-    public function __construct(FilesystemInterface $publicUploadFilesystem, FilesystemInterface $privateUploadsFilesystem, RequestStackContext $requestStackContext, LoggerInterface $logger, string $uploadedAssetsBaseUrl)
+    public function __construct(FilesystemInterface $publicUploadsFilesystem, FilesystemInterface $privateUploadsFilesystem, RequestStackContext $requestStackContext, LoggerInterface $logger, string $uploadedAssetsBaseUrl)
     {
-        $this->filesystem = $publicUploadFilesystem;
+        $this->filesystem = $publicUploadsFilesystem;
         $this->privateFilesystem = $privateUploadsFilesystem;
         $this->requestStackContext = $requestStackContext;
         $this->logger = $logger;
@@ -35,11 +38,12 @@ class UploaderHelper
     {
         $newFilename = $this->uploadFile($file, self::ARTICLE_IMAGE, true);
 
-        if($existingFilename) {
+        if ($existingFilename) {
             try {
                 $result = $this->filesystem->delete(self::ARTICLE_IMAGE.'/'.$existingFilename);
+
                 if ($result === false) {
-                    throw new \Exception(sprintf('Could not delete old uploaded file "%s"', $newFilename));
+                    throw new \Exception(sprintf('Could not delete old uploaded file "%s"', $existingFilename));
                 }
             } catch (FileNotFoundException $e) {
                 $this->logger->alert(sprintf('Old uploaded file "%s" was missing when trying to delete', $existingFilename));
@@ -67,11 +71,25 @@ class UploaderHelper
     public function readStream(string $path, bool $isPublic)
     {
         $filesystem = $isPublic ? $this->filesystem : $this->privateFilesystem;
+
         $resource = $filesystem->readStream($path);
+
         if ($resource === false) {
             throw new \Exception(sprintf('Error opening stream for "%s"', $path));
         }
+
         return $resource;
+    }
+
+    public function deleteFile(string $path, bool $isPublic)
+    {
+        $filesystem = $isPublic ? $this->filesystem : $this->privateFilesystem;
+
+        $result = $filesystem->delete($path);
+
+        if ($result === false) {
+            throw new \Exception(sprintf('Error deleting "%s"', $path));
+        }
     }
 
     private function uploadFile(File $file, string $directory, bool $isPublic): string
@@ -90,9 +108,11 @@ class UploaderHelper
             $directory.'/'.$newFilename,
             $stream
         );
+
         if ($result === false) {
             throw new \Exception(sprintf('Could not write uploaded file "%s"', $newFilename));
         }
+
         if (is_resource($stream)) {
             fclose($stream);
         }
